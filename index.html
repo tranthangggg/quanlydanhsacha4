@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Học Sinh 11A4 - Ultimate V4</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        
+        .header-section { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 20px; margin-bottom: 25px; }
+        h1 { margin: 0; color: #2c3e50; font-size: 28px; }
+        
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; margin-right: 10px; }
+        .role-super { background: #6610f2; color: #fff; }
+        .role-admin { background: #d1e7dd; color: #0f5132; }
+        .role-user { background: #cfe2ff; color: #084298; }
+        .role-guest { background: #f8d7da; color: #842029; }
+
+        .stats-bar { display: flex; gap: 30px; background: #e7f1ff; padding: 15px 25px; border-radius: 8px; margin-bottom: 25px; color: #004085; font-weight: 600; }
+        .stats-item span { color: #dc3545; font-size: 1.3em; margin-left: 5px; }
+
+        .panel { background: #fff3cd; border: 1px solid #ffeeba; padding: 20px; border-radius: 8px; margin-bottom: 25px; display: none; }
+        .panel.active { display: block; animation: fadeIn 0.5s; }
+        .admin-title { font-weight: bold; margin-bottom: 15px; color: #856404; text-transform: uppercase; border-bottom: 1px solid #ffeeba; padding-bottom: 5px; }
+        
+        .form-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; }
+        .form-account { display: grid; grid-template-columns: 2fr 2fr 2fr 1fr; gap: 15px; align-items: end; }
+        
+        .notice-editor { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; border-top: 1px dashed #dcb676; padding-top: 15px; }
+        textarea { width: 100%; padding: 15px; border: 1px solid #ced4da; border-radius: 6px; font-family: inherit; resize: vertical; box-sizing: border-box; line-height: 1.5; font-size: 14px;}
+        
+        input, select { padding: 10px; border: 1px solid #ced4da; border-radius: 6px; width: 100%; box-sizing: border-box; outline: none; transition: border-color 0.2s; }
+        input:focus { border-color: #007bff; }
+        
+        button { cursor: pointer; padding: 10px 18px; border: none; border-radius: 6px; color: white; font-weight: 600; transition: opacity 0.2s; }
+        button:hover { opacity: 0.9; }
+        .btn-add { background-color: #198754; grid-column: 1 / -1; }
+        .btn-add-acc { background-color: #6610f2; }
+        .btn-save-notice { background-color: #fd7e14; align-self: flex-start; }
+        .btn-edit { background-color: #ffc107; color: #000; margin-right: 5px; font-size: 12px; padding: 5px 8px;}
+        .btn-delete { background-color: #dc3545; font-size: 12px; padding: 5px 8px;}
+        .btn-reset { background-color: #17a2b8; font-size: 12px; padding: 5px 8px; margin-right: 5px; }
+        .btn-login { background-color: #0d6efd; box-shadow: 0 2px 5px rgba(13, 110, 253, 0.3); }
+        .btn-logout { background-color: #6c757d; }
+        .btn-close-notice { background-color: #6c757d; margin-top: 15px; width: 100%; }
+        .btn-clear-log { background-color: #dc3545; margin-top: 10px; font-size: 12px; }
+
+        table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 8px; box-shadow: 0 0 0 1px #dee2e6; margin-bottom: 20px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #dee2e6; }
+        th { background-color: #007bff; color: white; font-weight: 600; text-transform: uppercase; font-size: 14px; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        tr:hover { background-color: #f1f3f5; }
+
+        .log-container { max-height: 300px; overflow-y: auto; border: 1px solid #ccc; border-radius: 6px; background: white; }
+        .log-table th { background-color: #6610f2; font-size: 12px; }
+        .log-table td { font-size: 13px; padding: 8px; }
+        .log-time { color: #666; font-size: 11px; }
+
+        .locked-info { font-style: italic; color: #999; font-size: 0.9em; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); align-items: center; justify-content: center; }
+        .modal-content { background-color: white; padding: 30px; border-radius: 12px; width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; animation: popIn 0.3s ease-out; margin: 10% auto; }
+        @keyframes popIn { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+        @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+        .modal-header { font-size: 22px; font-weight: bold; margin-bottom: 20px; text-align: center; color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .modal-input { margin-bottom: 15px; }
+        .modal-input label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        .close-btn { position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer; color: #aaa; transition: 0.2s; }
+        .close-btn:hover { color: #dc3545; }
+        .btn-submit-login { width: 100%; background-color: #007bff; padding: 12px; margin-top: 10px; }
+        .notice-content { font-size: 16px; line-height: 1.6; color: #333; max-height: 400px; overflow-y: auto; white-space: pre-wrap; font-family: inherit; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-section">
+        <h1>🎓 Quản Lý Lớp 11A4</h1>
+        <div class="admin-controls">
+            <span id="userStatus" class="status-badge role-guest">Khách (Chưa login)</span>
+            <button id="btnAuth" class="btn-login" onclick="moFormDangNhap()">🔑 Đăng nhập</button>
+        </div>
+    </div>
+
+    <div class="stats-bar">
+        <div class="stats-item">Tổng sĩ số: <span id="tongSiSo">0</span></div>
+        <div class="stats-item">Nam: <span id="tongNam">0</span> 👦</div>
+        <div class="stats-item">Nữ: <span id="tongNu">0</span> 👧</div>
+    </div>
+
+    <div id="superAdminPanel" class="panel">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <div class="admin-title">🛡️ Quản lý tài khoản phụ</div>
+                <div class="form-account" style="grid-template-columns: 1fr 1fr; grid-template-rows: auto auto;">
+                    <input type="text" id="newUsername" placeholder="User mới" style="margin-bottom: 10px;">
+                    <input type="text" id="newPassword" placeholder="Pass" style="margin-bottom: 10px;">
+                    <select id="newRole" style="grid-column: 1 / -1; margin-bottom: 10px;">
+                        <option value="admin">Phó Admin (Quản lý HS)</option>
+                        <option value="user">Thành viên (Xem Full)</option>
+                    </select>
+                    <button class="btn-add-acc" style="grid-column: 1 / -1;" onclick="themTaiKhoan()">Tạo TK</button>
+                </div>
+                <div style="margin-top: 15px;">
+                    <b>Danh sách TK:</b>
+                    <table id="bangTaiKhoan" style="margin-top: 5px; background: white; font-size: 13px;">
+                        <thead><tr><th>User</th><th>Role</th><th style="width: 120px;">Hành động</th></tr></thead>
+                        <tbody id="bodyTaiKhoan"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <div class="admin-title">📜 Nhật ký hoạt động (Logs)</div>
+                <div class="log-container">
+                    <table class="log-table" style="width: 100%; margin: 0;">
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Người dùng</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyLog"></tbody>
+                    </table>
+                </div>
+                <button class="btn-clear-log" onclick="xoaLog()">🗑️ Xóa lịch sử</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminArea" class="panel">
+        <div class="admin-title">🛠️ Quản lý danh sách học sinh</div>
+        <div class="form-group">
+            <input type="text" id="hoTen" placeholder="Họ và Tên">
+            <select id="gioiTinh">
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
+            </select>
+            <input type="text" id="ngaySinh" placeholder="Ngày sinh">
+            <input type="text" id="sdt" placeholder="SĐT">
+            <input type="text" id="email" placeholder="Email">
+            <input type="text" id="queQuan" placeholder="Quê quán">
+            <input type="text" id="diaChi" placeholder="Địa chỉ">
+            <button class="btn-add" onclick="themHocSinh()">➕ Thêm Học Sinh</button>
+        </div>
+
+        <div class="notice-editor">
+            <div class="admin-title">📢 Thay đổi thông báo lớp</div>
+            <textarea id="txtNoiDungThongBao" rows="4" placeholder="Viết thông báo tại đây..."></textarea>
+            <button class="btn-save-notice" onclick="luuThongBaoMoi()">💾 Lưu Thông Báo</button>
+        </div>
+    </div>
+
+    <table id="bangHocSinh">
+        <thead>
+            <tr>
+                <th style="width: 40px;">STT</th>
+                <th>Họ Tên</th>
+                <th style="width: 70px;">Giới Tính</th>
+                <th>Ngày Sinh</th>
+                <th>SĐT</th>
+                <th>Email</th>
+                <th>Quê Quán</th>
+                <th>Địa Chỉ</th>
+                <th style="width: 100px;">Hành Động</th>
+            </tr>
+        </thead>
+        <tbody id="thanBang"></tbody>
+    </table>
+</div>
+
+<div id="noticeModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="dongThongBao()">&times;</span>
+        <div class="modal-header">📢 THÔNG BÁO LỚP 11A4</div>
+        <div class="notice-content" id="hienThiNoiDungTB"></div>
+        <button class="btn-close-notice" onclick="dongThongBao()">Đã Hiểu & Đóng</button>
+    </div>
+</div>
+
+<div id="loginModal" class="modal">
+    <div class="modal-content" style="width: 350px;">
+        <span class="close-btn" onclick="dongFormDangNhap()">&times;</span>
+        <div class="modal-header">Đăng Nhập Hệ Thống</div>
+        <div class="modal-input">
+            <label>Tên đăng nhập:</label>
+            <input type="text" id="loginUser" placeholder="Nhập username...">
+        </div>
+        <div class="modal-input">
+            <label>Mật khẩu:</label>
+            <input type="password" id="loginPass" placeholder="Nhập password...">
+        </div>
+        <button class="btn-submit-login" onclick="xuLyDangNhap()">Đăng Nhập</button>
+    </div>
+</div>
+
+<script>
+    const SUPER_ADMIN_USER = "admin";
+    const SUPER_ADMIN_PASS = "123456";
+    const KEY_THONG_BAO = "ND_ThongBao_Txt_11A4_V4";
+    const KEY_ACCOUNTS = "DS_TaiKhoan_11A4";
+    const KEY_STUDENTS = "DS_HocSinh_11A4";
+    const KEY_LOGS = "NhatKy_HeThong_11A4";
+
+    var duLieuMauHS = [
+        { id: 1, hoTen: "Nguyễn Văn An", gioiTinh: "Nam", ngaySinh: "20/01/2008", sdt: "090123456", email: "an@gmail.com", queQuan: "Hà Nội", diaChi: "TP.HCM" },
+        { id: 2, hoTen: "Trần Thị Bình", gioiTinh: "Nữ", ngaySinh: "15/05/2008", sdt: "091234567", email: "binh@gmail.com", queQuan: "Đà Nẵng", diaChi: "Bình Dương" },
+    ];
+
+    var currentRole = 'guest'; 
+    var currentUser = 'Khách';
+    var danhSachHocSinh = [];
+    var danhSachTaiKhoan = [];
+    var danhSachLog = [];
+
+    window.onload = function() {
+        loadDuLieu();
+        capNhatGiaoDien();
+        hienThiHocSinh();
+        khoiTaoThongBao();
+        document.getElementById("noticeModal").style.display = "block";
+    };
+
+    function loadDuLieu() {
+        danhSachHocSinh = JSON.parse(localStorage.getItem(KEY_STUDENTS)) || duLieuMauHS;
+        danhSachTaiKhoan = JSON.parse(localStorage.getItem(KEY_ACCOUNTS)) || [];
+        danhSachLog = JSON.parse(localStorage.getItem(KEY_LOGS)) || [];
+    }
+
+    function ghiLog(hanhDong) {
+        var now = new Date();
+        var timeStr = now.getHours() + ":" + (now.getMinutes()<10?'0':'') + now.getMinutes() + " " + now.getDate() + "/" + (now.getMonth()+1);
+        
+        var logMoi = {
+            time: timeStr,
+            user: currentUser,
+            action: hanhDong
+        };
+        
+        danhSachLog.unshift(logMoi);
+        if(danhSachLog.length > 50) danhSachLog.pop();
+        
+        localStorage.setItem(KEY_LOGS, JSON.stringify(danhSachLog));
+        if(currentRole === 'super_admin') hienThiLog();
+    }
+
+    function hienThiLog() {
+        var tbody = document.getElementById("bodyLog");
+        tbody.innerHTML = "";
+        danhSachLog.forEach(log => {
+            var row = `<tr>
+                <td class="log-time">${log.time}</td>
+                <td style="font-weight:bold; color:#0d6efd;">${log.user}</td>
+                <td>${log.action}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function xoaLog() {
+        if(confirm("Xóa toàn bộ lịch sử hoạt động?")) {
+            danhSachLog = [];
+            localStorage.setItem(KEY_LOGS, JSON.stringify(danhSachLog));
+            hienThiLog();
+        }
+    }
+
+    function moFormDangNhap() {
+        if(currentRole !== 'guest') {
+            if(confirm("Đăng xuất?")) {
+                ghiLog("Đăng xuất khỏi hệ thống");
+                currentRole = 'guest';
+                currentUser = 'Khách';
+                capNhatGiaoDien();
+                hienThiHocSinh();
+            }
+        } else {
+            document.getElementById("loginModal").style.display = "block";
+            document.getElementById("loginUser").value = "";
+            document.getElementById("loginPass").value = "";
+            document.getElementById("loginUser").focus();
+        }
+    }
+
+    function dongFormDangNhap() {
+        document.getElementById("loginModal").style.display = "none";
+    }
+
+    function xuLyDangNhap() {
+        var user = document.getElementById("loginUser").value;
+        var pass = document.getElementById("loginPass").value;
+
+        if (user === SUPER_ADMIN_USER && pass === SUPER_ADMIN_PASS) {
+            currentRole = 'super_admin';
+            currentUser = 'Super Admin';
+            thanhCong();
+            return;
+        }
+
+        var acc = danhSachTaiKhoan.find(a => a.user === user && a.pass === pass);
+        if (acc) {
+            currentRole = acc.role;
+            currentUser = user;
+            thanhCong();
+            return;
+        }
+
+        alert("❌ Sai thông tin đăng nhập!");
+
+        function thanhCong() {
+            dongFormDangNhap();
+            ghiLog("Đăng nhập thành công");
+            capNhatGiaoDien();
+            hienThiHocSinh();
+            if(currentRole === 'super_admin') {
+                hienThiTaiKhoan();
+                hienThiLog();
+            }
+        }
+    }
+
+    function capNhatGiaoDien() {
+        var superPanel = document.getElementById("superAdminPanel");
+        var adminPanel = document.getElementById("adminArea");
+        var status = document.getElementById("userStatus");
+        var btn = document.getElementById("btnAuth");
+
+        superPanel.classList.remove("active");
+        adminPanel.classList.remove("active");
+
+        if (currentRole === 'super_admin') {
+            superPanel.classList.add("active");
+            adminPanel.classList.add("active");
+            status.innerText = "Super Admin";
+            status.className = "status-badge role-super";
+            btn.innerText = "Đăng xuất";
+            document.getElementById("txtNoiDungThongBao").value = localStorage.getItem(KEY_THONG_BAO) || "";
+        } 
+        else if (currentRole === 'admin') {
+            adminPanel.classList.add("active");
+            status.innerText = "Phó Admin (" + currentUser + ")";
+            status.className = "status-badge role-admin";
+            btn.innerText = "Đăng xuất";
+            document.getElementById("txtNoiDungThongBao").value = localStorage.getItem(KEY_THONG_BAO) || "";
+        }
+        else if (currentRole === 'user') {
+            status.innerText = "Thành viên (" + currentUser + ")";
+            status.className = "status-badge role-user";
+            btn.innerText = "Đăng xuất";
+        }
+        else { 
+            status.innerText = "Khách";
+            status.className = "status-badge role-guest";
+            btn.innerText = "🔑 Đăng nhập";
+        }
+    }
+
+    function hienThiTaiKhoan() {
+        var tbody = document.getElementById("bodyTaiKhoan");
+        tbody.innerHTML = "";
+        danhSachTaiKhoan.forEach((acc, index) => {
+            var row = `<tr>
+                <td>${acc.user}</td>
+                <td>${acc.role}</td>
+                <td>
+                    <button class="btn-reset" onclick="doiMatKhau(${index})">Đổi Pass</button>
+                    <button class="btn-delete" onclick="xoaTaiKhoan(${index})">Xóa</button>
+                </td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function themTaiKhoan() {
+        var u = document.getElementById("newUsername").value;
+        var p = document.getElementById("newPassword").value;
+        var r = document.getElementById("newRole").value;
+
+        if(!u || !p) { alert("Thiếu thông tin!"); return; }
+        if(u === SUPER_ADMIN_USER || danhSachTaiKhoan.some(a => a.user === u)) {
+            alert("Tên trùng!"); return;
+        }
+
+        danhSachTaiKhoan.push({ user: u, pass: p, role: r });
+        localStorage.setItem(KEY_ACCOUNTS, JSON.stringify(danhSachTaiKhoan));
+        
+        ghiLog(`Tạo tài khoản mới: ${u} (Quyền: ${r})`); 
+        
+        hienThiTaiKhoan();
+        document.getElementById("newUsername").value = "";
+        document.getElementById("newPassword").value = "";
+    }
+
+    function doiMatKhau(index) {
+        var acc = danhSachTaiKhoan[index];
+        var passMoi = prompt("Nhập mật khẩu mới cho user: " + acc.user);
+        
+        if (passMoi !== null && passMoi.trim() !== "") {
+            danhSachTaiKhoan[index].pass = passMoi;
+            localStorage.setItem(KEY_ACCOUNTS, JSON.stringify(danhSachTaiKhoan));
+            
+            ghiLog(`Đổi mật khẩu cho: ${acc.user}`);
+            alert(`✅ Đã đổi mật khẩu cho ${acc.user} thành công!`);
+            
+            console.log(`New pass for ${acc.user}: ${passMoi}`);
+        }
+    }
+
+    function xoaTaiKhoan(index) {
+        var tkBiXoa = danhSachTaiKhoan[index].user;
+        if(confirm("Xóa tài khoản " + tkBiXoa + "?")) {
+            danhSachTaiKhoan.splice(index, 1);
+            localStorage.setItem(KEY_ACCOUNTS, JSON.stringify(danhSachTaiKhoan));
+            
+            ghiLog(`Xóa tài khoản: ${tkBiXoa}`);
+            
+            hienThiTaiKhoan();
+        }
+    }
+
+    function hienThiHocSinh() {
+        var tbody = document.getElementById("thanBang");
+        tbody.innerHTML = "";
+        var canViewFull = (currentRole !== 'guest');
+        var canEdit = (currentRole === 'super_admin' || currentRole === 'admin');
+
+        danhSachHocSinh.forEach((hs, i) => {
+            var row = `<tr><td>${i + 1}</td><td><b>${hs.hoTen}</b></td>`;
+            var color = hs.gioiTinh === "Nam" ? "blue" : "deeppink";
+            row += `<td style='color:${color}; font-weight:bold'>${hs.gioiTinh}</td>`;
+            
+            if (canViewFull) {
+                row += `<td>${hs.ngaySinh}</td><td>${hs.sdt}</td><td>${hs.email}</td><td>${hs.queQuan}</td><td>${hs.diaChi}</td>`;
+            } else {
+                row += `<td><span class='locked-info'>🔒</span></td><td>***</td><td>***</td><td>***</td><td>***</td>`;
+            }
+
+            row += "<td>";
+            if (canEdit) {
+                row += `<button class='btn-edit' onclick='suaHocSinh(${hs.id})'>Sửa</button>`;
+                row += `<button class='btn-delete' onclick='xoaHocSinh(${hs.id})'>Xóa</button>`;
+            } else {
+                row += "<span style='color:#ccc; font-size:12px;'>----</span>";
+            }
+            row += "</td></tr>";
+            tbody.innerHTML += row;
+        });
+        document.getElementById("tongSiSo").innerText = danhSachHocSinh.length;
+        document.getElementById("tongNam").innerText = danhSachHocSinh.filter(h=>h.gioiTinh==="Nam").length;
+        document.getElementById("tongNu").innerText = danhSachHocSinh.filter(h=>h.gioiTinh!=="Nam").length;
+    }
+
+    function themHocSinh() {
+        var hoTen = document.getElementById("hoTen").value;
+        if(!hoTen) { alert("Nhập tên!"); return; }
+        var hsMoi = {
+            id: Date.now(),
+            hoTen: hoTen,
+            gioiTinh: document.getElementById("gioiTinh").value,
+            ngaySinh: document.getElementById("ngaySinh").value,
+            sdt: document.getElementById("sdt").value,
+            email: document.getElementById("email").value,
+            queQuan: document.getElementById("queQuan").value,
+            diaChi: document.getElementById("diaChi").value
+        };
+        danhSachHocSinh.push(hsMoi);
+        localStorage.setItem(KEY_STUDENTS, JSON.stringify(danhSachHocSinh));
+        
+        ghiLog(`Thêm học sinh: ${hoTen}`); 
+        
+        hienThiHocSinh();
+        document.getElementById("hoTen").value = "";
+    }
+
+    function xoaHocSinh(id) {
+        var hs = danhSachHocSinh.find(h => h.id === id);
+        if(confirm("Xóa em " + hs.hoTen + "?")) {
+            danhSachHocSinh = danhSachHocSinh.filter(h => h.id !== id);
+            localStorage.setItem(KEY_STUDENTS, JSON.stringify(danhSachHocSinh));
+            
+            ghiLog(`Xóa học sinh: ${hs.hoTen}`);
+            
+            hienThiHocSinh();
+        }
+    }
+
+    function suaHocSinh(id) {
+        var hs = danhSachHocSinh.find(h => h.id === id);
+        var tenCu = hs.hoTen;
+        var tenMoi = prompt("Sửa tên:", hs.hoTen);
+        if(tenMoi && tenMoi !== tenCu) { 
+            hs.hoTen = tenMoi; 
+            localStorage.setItem(KEY_STUDENTS, JSON.stringify(danhSachHocSinh));
+            
+            ghiLog(`Sửa tên HS: ${tenCu} -> ${tenMoi}`);
+            
+            hienThiHocSinh(); 
+        }
+    }
+
+    function luuThongBaoMoi() {
+        var noiDung = document.getElementById("txtNoiDungThongBao").value;
+        localStorage.setItem(KEY_THONG_BAO, noiDung);
+        
+        ghiLog("Cập nhật thông báo lớp");
+        
+        document.getElementById("hienThiNoiDungTB").innerText = noiDung;
+        alert("Đã lưu!");
+    }
+
+    function khoiTaoThongBao() {
+        var tb = localStorage.getItem(KEY_THONG_BAO) || "Chào mừng lớp 11A4!";
+        document.getElementById("hienThiNoiDungTB").innerText = tb;
+        document.getElementById("txtNoiDungThongBao").value = tb;
+    }
+
+    function dongThongBao() { document.getElementById("noticeModal").style.display = "none"; }
+
+</script>
+
+</body>
+</html>
